@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "modelId": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+  "revision": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+  "baseModelId": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "baseRevision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+  "license": "apache-2.0",
+  "dtype": "q8",
+  "task": "feature-extraction",
+  "remoteRuntimeAllowed": false,
+  "files": [
+    {
+      "path": "config.json",
+      "bytes": 673,
+      "sha256": "05b570bff786faa5c4604152aa16f19f77ed6dfc31e47dd0f3dd987078693ac7",
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/resolve/2c4055b12046f11709e9df2c122e59ffbdc2f900/config.json"
+    },
+    {
+      "path": "special_tokens_map.json",
+      "bytes": 280,
+      "sha256": "06e405a36dfe4b9604f484f6a1e619af1a7f7d09e34a8555eb0b77b66318067f",
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/resolve/2c4055b12046f11709e9df2c122e59ffbdc2f900/special_tokens_map.json"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 17082913,
+      "sha256": "b60b6b43406a48bf3638526314f3d232d97058bc93472ff2de930d43686fa441",
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/resolve/2c4055b12046f11709e9df2c122e59ffbdc2f900/tokenizer.json"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 496,
+      "sha256": "3f5961b9ac86288cccdb97f32fb848d6187c78e1603958c53f3ea1f296b7d8a2",
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/resolve/2c4055b12046f11709e9df2c122e59ffbdc2f900/tokenizer_config.json"
+    },
+    {
+      "path": "unigram.json",
+      "bytes": 14763234,
+      "sha256": "71b44701d7efd054205115acfa6ef126c5d2f84bd3affe0c59e48163674d19a6",
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/resolve/2c4055b12046f11709e9df2c122e59ffbdc2f900/unigram.json"
+    },
+    {
+      "path": "onnx/model_quantized.onnx",
+      "bytes": 118308126,
+      "sha256": "66fc00f5f29afcaff34092e1bdd20008ca3918265a82fb9695a551e510cc4ebc",
+      "source": "https://huggingface.co/Xenova/paraphrase-multilingual-MiniLM-L12-v2/resolve/2c4055b12046f11709e9df2c122e59ffbdc2f900/onnx/model_quantized.onnx"
+    },
+    {
+      "path": "LICENSE-METADATA.json",
+      "bytes": 742,
+      "sha256": "367e945e9b598f143c54a11d8c8d212858f431debe5a26ee5ec241d9de1b4549",
+      "source": "https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/tree/e8f8c211226b894fcb81acc59f3b34ba3efd5f42"
+    }
+  ],
+  "totalBytes": 150156464,
+  "preparedAt": "2026-09-12T11:25:41.724Z"
+}

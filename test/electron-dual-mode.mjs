@@ -1,0 +1,304 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { mkdir, mkdtemp, readFile, readdir } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import path from 'node:path';
+import os from 'node:os';
+import { fileURLToPath } from 'node:url';
+import test from 'node:test';
+import { createUsnFixture } from './usn-fixture.mjs';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const { _electron }=createRequire(import.meta.url)(process.env.RECOVERY_PLAYWRIGHT_MODULE || 'playwright');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const openDetails=async(page,selector)=>{const details=page.locator(selector);if(!await details.evaluate(element=>element.open))await details.locator(':scope > summary').click();};
+const closeDetails=async(page,selector)=>{const details=page.locator(selector);if(await details.evaluate(element=>element.open))await details.locator(':scope > summary').click();};
+
+test('dual views lock during conversation and work; real fixture list filters, matches, previews and saves', {timeout:90000}, async()=>{
+  const run=await mkdtemp(path.join(os.tmpdir(),'recovery-dual-mode-'));
+  const destination=path.join(run,'destination');
+  await mkdir(destination);
+  const imageFixture=await createUsnFixture(path.join(run,'ntfs-fixture'));
+  const sourceHash=hash(await readFile(imageFixture.imagePath));
+  const expectedUnicode=imageFixture.manifest.files.find(item=>item.recordNumber===24);
+  const output=path.join('E:\\RecoveryChat-Stage2-20260920\\desktop','dual-mode');await mkdir(output,{recursive:true});
+  let app;const pageErrors=[];
+  try{
+    app=await _electron.launch({executablePath:process.env.RECOVERY_PACKAGED_APP||path.join(root,'node_modules','electron','dist','electron.exe'),args:process.env.RECOVERY_PACKAGED_APP?[]:[root],env:{...process.env,RECOVERY_WORKSPACE:path.join(run,'workspace'),TZ:'Asia/Seoul'}});
+    await app.evaluate(({app,dialog},fixture)=>{
+      const require=process.mainModule.require.bind(process.mainModule),path=require('node:path');
+      const engine=app.isPackaged?path.join(process.resourcesPath,'app.asar.unpacked','engine'):path.join(app.getAppPath(),'engine');
+      const {RecoveryJobs}=require(path.join(engine,'job-service.mjs'));
+      const originalStart=RecoveryJobs.prototype.start,originalCandidates=RecoveryJobs.prototype.candidates,originalPreview=RecoveryJobs.prototype.preview,originalRecover=RecoveryJobs.prototype.recover,originalHistory=RecoveryJobs.prototype.history;
+      const fakeDevices=[
+        {id:'dual-volume-first',label:'자료 드라이브 1 (D:)',kind:'volume',ready:true,fileSystem:'NTFS',system:true},
+        {id:'dual-volume-second',label:'자료 드라이브 2 (E:)',kind:'volume',ready:true,fileSystem:'NTFS'}
+      ];
+      const fakeCandidate={id:'dual-candidate',name:'두번째장치보고서.txt',size:32,status:'readable',source:'deleted-record',deletedAt:'2026-09-12T05:00:00Z',modifiedAt:'2026-09-11T05:00:00Z',originalPath:'E:\\업무\\두번째장치보고서.txt',nameMatch:{kind:'none'},reasons:[],namedStreamPolicy:{streams:[{name:'Zone.Identifier',size:26,resident:true,preservation:'required'}]}};
+      const legacyRecycleJobs=[
+        {id:'legacy-recycle-source',jobId:'legacy-recycle-source',mode:'deleted',label:'이전 휴지통 원본 작업',sourceKind:'recycle',status:'results',createdAt:'2026-09-10T01:00:00.000Z',candidateCount:2,filters:{},inMemory:false,canContinue:false},
+        {id:'legacy-recycle-mode',jobId:'legacy-recycle-mode',mode:'recycle',label:'이전 휴지통 모드 작업',sourceKind:'volume',status:'results',createdAt:'2026-09-09T01:00:00.000Z',candidateCount:3,filters:{},inMemory:false,canContinue:false}
+      ];
+      globalThis.__dualTest={deviceCalls:0,sourcePickerCalls:0,destinationPickerCalls:0,cancel:true,rejectNextStart:false,recycleProviderCalls:0,allStarts:[],fakeStarts:[],fakeRecovers:[],fakeJobs:[],fakeStatuses:{},recycleLaunches:[]};
+      RecoveryJobs.prototype.recycleSource=async function(){globalThis.__dualTest.recycleProviderCalls++;throw new Error('in-app recycle provider must never be called');};
+      RecoveryJobs.prototype.start=async function(request){
+        globalThis.__dualTest.allStarts.push({...request});
+        if(String(request?.sourceId||'').startsWith('dual-volume-')){
+          const attempt={...request};globalThis.__dualTest.fakeStarts.push(attempt);
+          if(globalThis.__dualTest.rejectNextStart){globalThis.__dualTest.rejectNextStart=false;throw new Error('시험용 교체 검색 거부');}
+          const jobId='dual-job-'+globalThis.__dualTest.fakeStarts.length;attempt.jobId=jobId;globalThis.__dualTest.fakeStatuses[jobId]='scanning';
+          globalThis.__dualTest.fakeJobs.push({id:jobId,jobId,mode:request.mode,recent:request.recent===true,label:fakeDevices.find(device=>device.id===request.sourceId)?.label||request.sourceId,sourceKind:'volume',status:'scanning',createdAt:new Date().toISOString(),candidateCount:1,filters:request.filters||{},inMemory:true,canContinue:false});
+          return {jobId};
+        }
+        await new Promise(resolve=>setTimeout(resolve,550));return originalStart.call(this,request);
+      };
+      RecoveryJobs.prototype.candidates=function(request){if(String(request?.jobId||'').startsWith('dual-job-'))return {items:[fakeCandidate],total:1,scannedTotal:1,complete:globalThis.__dualTest.fakeStatuses[request.jobId]!=='scanning',status:globalThis.__dualTest.fakeStatuses[request.jobId]||'results',matchCounts:{exact:0,partial:0,similar:0,unknown:0,none:1},unknownDeletedTimeTotal:0};return originalCandidates.call(this,request);};
+      RecoveryJobs.prototype.preview=async function(request){if(String(request?.jobId||'').startsWith('dual-job-'))return {type:'text',text:'두 번째 장치의 보존 미리보기'};return originalPreview.call(this,request);};
+      RecoveryJobs.prototype.recover=async function(request){if(String(request?.jobId||'').startsWith('dual-job-')){globalThis.__dualTest.fakeRecovers.push({...request});globalThis.__dualTest.fakeStatuses[request.jobId]='recovering';return {jobId:request.jobId};}return originalRecover.call(this,request);};
+      RecoveryJobs.prototype.history=function(){const history=originalHistory.call(this);return {...history,jobs:[...globalThis.__dualTest.fakeJobs].reverse().concat(legacyRecycleJobs,history.jobs)};};
+      RecoveryJobs.prototype.devices=async()=>{globalThis.__dualTest.deviceCalls++;return {devices:fakeDevices};};
+      dialog.showOpenDialog=async(_window,options)=>{if(options?.properties?.includes('openFile')){globalThis.__dualTest.sourcePickerCalls++;return {canceled:false,filePaths:[fixture.image]};}globalThis.__dualTest.destinationPickerCalls++;return globalThis.__dualTest.cancel?{canceled:true,filePaths:[]}:{canceled:false,filePaths:[fixture.destination]};};
+      const childProcess=require('node:child_process'),{EventEmitter}=require('node:events'),originalSpawn=childProcess.spawn;
+      childProcess.spawn=function(command,args,options){
+        if(Array.isArray(args)&&args.includes('shell:RecycleBinFolder')){globalThis.__dualTest.recycleLaunches.push({command,args:[...args],options:{detached:options?.detached,windowsHide:options?.windowsHide,shell:options?.shell}});const child=new EventEmitter();child.pid=4242;child.unref=()=>{};queueMicrotask(()=>child.emit('spawn'));return child;}
+        return originalSpawn.apply(this,arguments);
+      };
+    },{destination,image:imageFixture.imagePath});
+    const page=await app.firstWindow();page.setDefaultTimeout(12000);page.on('pageerror',error=>pageErrors.push(error.message));
+    const emitFake=async(jobId,type,extra={})=>{
+      await app.evaluate(({BrowserWindow},event)=>{
+        const status=event.type==='complete'?'results':event.type==='recover-complete'?'complete':event.type==='error'?'error':event.type;
+        globalThis.__dualTest.fakeStatuses[event.jobId]=status;
+        const history=globalThis.__dualTest.fakeJobs.find(job=>job.id===event.jobId);if(history)history.status=status;
+        BrowserWindow.getAllWindows()[0].webContents.send('recovery-event',{jobId:event.jobId,type:event.type,...event.extra});
+      },{jobId,type,extra});
+    };
+    const assertChatLocked=async message=>{
+      assert.equal(await page.locator('body').getAttribute('data-view-mode'),'chat',message);
+      assert.equal(await page.locator('button[data-view-mode=program]').isDisabled(),true,message);
+      assert.equal(await page.locator('#end-chat').isVisible(),true,message);
+      assert.equal(await page.locator('#end-chat').isEnabled(),true,message);
+    };
+    const chooseSecondVolumeInChat=async()=>{
+      await page.locator('button[data-view-mode=chat]').click();
+      await page.getByRole('button',{name:/^직접 지웠어요/}).click();
+      await page.getByRole('button',{name:/^휴지통을 비웠어요/}).click();
+      await page.locator('#question .choice').filter({hasText:'자료 드라이브 2 (E:)'}).click();
+      await page.getByRole('button',{name:'단서 없이 계속',exact:true}).click();
+      await page.getByRole('button',{name:/^삭제 파일 찾기/}).click();
+      await page.getByRole('button',{name:'검색 시작',exact:true}).click();
+      await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length===1);
+      return app.evaluate(()=>globalThis.__dualTest.fakeStarts.at(-1).jobId);
+    };
+    await page.getByText('데스크톱 연결됨',{exact:true}).waitFor();
+    assert.equal(await page.evaluate(()=>typeof window.recoveryAPI.recycleSource),'undefined','the renderer bridge exposes no recycle scanning provider');
+    assert.equal(await page.evaluate(()=>typeof window.recoveryAPI.openRecycleBin),'function','the renderer bridge keeps the fixed Windows recycle-bin opener');
+    const rejectedRecycleStart=await page.evaluate(async()=>{try{await window.recoveryAPI.start({sourceId:'legacy-recycle-source',mode:'recycle',recent:true,filters:{}});return null;}catch(error){return {message:error.message,code:error.code};}});
+    assert.match(rejectedRecycleStart?.message||'',/휴지통은 Windows에서 확인할 수 있어요/,'IPC rejects a direct recycle-mode start outside the UI');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.allStarts.length),0,'rejected recycle mode never reaches RecoveryJobs.start');
+    assert.equal(await page.locator('body').getAttribute('data-view-mode'),'program');
+    assert.equal(await page.locator('[data-program-route=deleted]').getAttribute('aria-pressed'),'true','deleted records are the default program route');
+    assert.equal(await page.locator('[data-program-route=recycle]').count(),0,'the program has no in-app recycle scan route');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.deviceCalls),0,'startup does not eagerly inspect devices');
+    await openDetails(page,'#search-options-details');
+    await page.locator('[data-open-recycle]').first().click();
+    await app.evaluate(()=>new Promise(resolve=>setTimeout(resolve,25)));
+    const firstRecycleLaunch=await app.evaluate(()=>globalThis.__dualTest.recycleLaunches[0]);
+    assert.ok(firstRecycleLaunch,'the top recycle action reaches the main-process launcher');
+    assert.match(path.basename(firstRecycleLaunch.command),/^explorer\.exe$/i);
+    assert.deepEqual(firstRecycleLaunch.args,['shell:RecycleBinFolder']);
+    assert.equal(firstRecycleLaunch.options.detached,true);
+    assert.equal(firstRecycleLaunch.options.windowsHide,false);
+    assert.equal(firstRecycleLaunch.options.shell,undefined);
+    await closeDetails(page,'#search-options-details');
+    await page.screenshot({path:path.join(output,'program-empty.png')});
+    await page.locator('button[data-view-mode=chat]').click();
+    assert.equal(await page.locator('[data-open-recycle]').count()>0,true,'the external recycle action remains available in chat view');
+    assert.equal(await page.getByRole('button',{name:/^최근 삭제 기록 보기/}).count(),1,'chat starts with the deleted-record route');
+    assert.equal(await page.getByRole('button',{name:/^직접 지웠어요/}).count(),1);
+    const beforeRecentDevices=await app.evaluate(()=>globalThis.__dualTest.deviceCalls);
+    await page.getByRole('button',{name:/^최근 삭제 기록 보기/}).click();
+    await page.getByRole('button',{name:/^최근 삭제 목록 검색/}).waitFor();
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.deviceCalls),beforeRecentDevices+1,'recent deleted records begin with device inventory');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.recycleProviderCalls),0,'recent deleted records never call the recycle provider');
+    await page.locator('#end-chat').click();
+    await page.locator('button[data-view-mode=chat]').click();
+    await page.getByRole('button',{name:/^직접 지웠어요/}).click();
+    await page.getByRole('heading',{name:/휴지통을 확인해 보셨나요/}).waitFor();
+    const recycleQuestion=page.locator('#question');
+    for(const label of [/^휴지통 열기/,/^휴지통을 비웠어요/,/^완전 삭제했어요/,/^휴지통에도 없어요/])assert.equal(await recycleQuestion.getByRole('button',{name:label}).count(),1,`missing chat recycle choice ${label}`);
+    await recycleQuestion.getByRole('button',{name:/^휴지통 열기/}).click();
+    await app.evaluate(()=>new Promise(resolve=>setTimeout(resolve,25)));
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.recycleLaunches.length),2,'chat recycle action uses the same external opener');
+    assert.equal(await page.locator('button[data-view-mode=program]').isDisabled(),true,'conversation locks both modes');
+    await page.screenshot({path:path.join(output,'chat-active.png')});
+    await page.locator('#end-chat').click();
+    await page.locator('button[data-view-mode=program]').click();
+    await openDetails(page,'#search-options-details');
+    await page.locator('#program-image').click();
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.sourcePickerCalls),1,'the real fixture is selected through the image picker');
+    await page.locator('#program-name').fill('찾지못한파일.pdf');
+    await page.locator('#program-start').click();
+    assert.equal(await page.locator('button[data-view-mode=chat]').isDisabled(),true,'preparation locks mode even before worker starts');
+    await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length===10&&!document.querySelector('button[data-view-mode=chat]').disabled);
+    await openDetails(page,'.custom-period');
+    const firstStart=await app.evaluate(()=>globalThis.__dualTest.allStarts[0]);
+    assert.equal(firstStart.mode,'deleted','the default program start requests deleted records');
+    assert.equal(firstStart.recent,true,'the default deleted-record search requests recent ordering');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.destinationPickerCalls),0,'listing did not request a destination');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.recycleProviderCalls),0,'default program search never calls the recycle provider');
+    assert.match(await page.locator('#match-notice').innerText(),/일치하는 파일을 찾지 못했어요/);
+    assert.equal((await page.locator('.candidate-name').allTextContents()).includes('삭제된-문서.txt'),true,'an unknown-name search keeps the real deleted-record candidates');
+    await page.locator('#deleted-after').fill('2026-09-13');await page.locator('#deleted-after').dispatchEvent('change');
+    await page.locator('#deleted-before').fill('2026-09-13');await page.locator('#deleted-before').dispatchEvent('change');
+    await page.locator('#include-unknown-date').uncheck();
+    await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length===1);
+    assert.deepEqual(await page.locator('.candidate-name').allTextContents(),['contiguous.bin'],'the period filter uses the USN deletion date');
+    await page.locator('[data-period=all]').click();
+    await page.locator('#include-unknown-date').check();
+    await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length===10);
+    await page.locator('#program-name').fill('삭제된-문서.txt');await page.locator('#program-name').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelector('#match-notice').textContent.includes('일치하는 후보 1개'));
+    await page.locator('.candidate-name').filter({hasText:'삭제된-문서.txt'}).click();
+    await page.locator('#preview-content .preview-text').waitFor();
+    assert.match(await page.locator('#preview-content .preview-text').innerText(),/회복 연진 테스트 문서/);
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.destinationPickerCalls),0,'inline preview does not request a destination');
+    assert.deepEqual(await readdir(destination),[]);
+    await page.screenshot({path:path.join(output,'program-preview.png')});
+    const originalWindow=await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].getBounds());
+    await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(420,760));
+    await page.screenshot({path:path.join(output,'program-narrow.png')});
+    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);assert.equal(overflow,false,'narrow view has no horizontal document overflow');
+    await page.emulateMedia({reducedMotion:'reduce'});
+    assert.equal(await page.locator('.preview-content').evaluate(element=>getComputedStyle(element).animationName),'none');
+    await app.evaluate(({BrowserWindow},bounds)=>BrowserWindow.getAllWindows()[0].setBounds(bounds),originalWindow);
+    await page.locator('.candidate-name').filter({hasText:'삭제된-문서.txt'}).dblclick();
+    await page.waitForFunction(()=>!document.querySelector('button[data-view-mode=chat]').disabled);
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.destinationPickerCalls),1);
+    assert.equal(await page.locator('article.candidate').count(),10,'picker cancel preserves candidates');
+    await app.evaluate(()=>{globalThis.__dualTest.cancel=false;});
+    await page.locator('.candidate-name').filter({hasText:'삭제된-문서.txt'}).dblclick();
+    await page.waitForFunction(()=>document.querySelector('#results-actions').textContent.includes('파일 저장 1개'));
+    const descendants=async dir=>{const out=[];for(const ent of await readdir(dir,{withFileTypes:true})){const p=path.join(dir,ent.name);if(ent.isDirectory())out.push(...await descendants(p));else out.push(p);}return out;};
+    const saved=(await descendants(destination)).filter(p=>path.basename(p)==='삭제된-문서.txt');assert.equal(saved.length,1);assert.equal(hash(await readFile(saved[0])),expectedUnicode.sha256);
+    assert.equal(hash(await readFile(imageFixture.imagePath)),sourceHash,'source fixture remains unchanged');
+    const restoredCard=page.locator('.recovery-result');
+    assert.match(await restoredCard.innerText(),/읽어온 바이트와 저장본의 크기·SHA-256 일치/);
+    assert.match(await restoredCard.innerText(),/내용 미리보기 확인/);
+    assert.match(await restoredCard.innerText(),/기록에 남은 파일명 사용/);
+    await restoredCard.getByRole('button',{name:'복구본 미리보기',exact:true}).click();
+    await page.getByRole('dialog').locator('.preview-text').waitFor();
+    assert.match(await page.getByRole('dialog').locator('.preview-text').innerText(),/회복 연진 테스트 문서/);
+    await page.screenshot({path:path.join(output,'restored-file-preview.png')});
+    await page.getByRole('dialog').locator('.dialog-actions').getByRole('button',{name:'닫기',exact:true}).click();
+    await page.getByRole('button',{name:'다른 후보 찾기',exact:true}).click();
+    await page.waitForFunction(()=>document.body.dataset.hasJob==='false');
+    assert.equal(await page.locator('#program-name').inputValue(),'','completion new-search action clears the old name filter');
+    assert.equal(await page.locator('#results-count').innerText(),'0','completion new-search action clears old candidates');
+    assert.equal(await page.locator('[data-program-route=deleted]').getAttribute('aria-pressed'),'true','completion new-search action returns to deleted records');
+    await page.locator('#program-image').click();
+    await page.locator('#program-start').click();
+    await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length>0&&!document.querySelector('button[data-view-mode=chat]').disabled);
+    await page.locator('#include-unknown-date').uncheck();
+    await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length===2);
+    assert.deepEqual(await page.locator('.candidate-name').allTextContents(),['contiguous.bin','삭제된-문서.txt'],'known USN deletion dates remain when unknown dates are hidden');
+    await page.locator('#include-unknown-date').check();
+    await page.waitForFunction(()=>document.querySelectorAll('article.candidate').length>0);
+    await page.locator('article.candidate button').filter({hasText:'정보 · 미리보기'}).first().click();
+    await page.waitForFunction(()=>!document.querySelector('button[data-view-mode=chat]').disabled);
+    await page.locator('#go-deeper').click();
+    await page.waitForFunction(()=>document.querySelector('#results-title').textContent==='정밀 검색 후보'&&!document.querySelector('button[data-view-mode=chat]').disabled);
+    assert.equal((await page.evaluate(()=>window.recoveryAPI.state())).jobs.at(-1).mode==='deep'||(await page.evaluate(()=>window.recoveryAPI.state())).jobs.some(j=>j.mode==='deep'),true);
+    await page.screenshot({path:path.join(output,'deep-results.png'),animations:'disabled'});
+
+    await page.getByRole('button',{name:'처음부터',exact:true}).click();
+    assert.deepEqual(await page.locator('#program-source option').evaluateAll(options=>options.map(option=>option.value)),['auto'],'reset removes the previously selected image and device inventory');
+    const secondJob=await chooseSecondVolumeInChat();
+    await emitFake(secondJob,'complete',{complete:true,stats:{candidatesFound:1},warnings:[]});
+    await page.waitForFunction(()=>!document.querySelector('#scan-status').offsetParent);
+    await assertChatLocked('a completed chat search stays in the conversation until the user ends it');
+    await page.locator('#end-chat').click();
+    assert.equal(await page.locator('button[data-view-mode=program]').isEnabled(),true,'ending chat unlocks the program mode');
+    assert.equal(await page.locator('article.candidate').count(),1,'ending chat preserves its completed result');
+    await page.locator('button[data-view-mode=program]').click();
+    assert.deepEqual(await page.locator('.candidate-name').allTextContents(),['두번째장치보고서.txt']);
+    await page.locator('.candidate-name').click();
+    await page.getByText('두 번째 장치의 보존 미리보기',{exact:true}).waitFor();
+    const preserved={names:await page.locator('.candidate-name').allTextContents(),preview:await page.locator('#preview-content').innerText(),title:await page.locator('#results-title').innerText()};
+    await app.evaluate(()=>{globalThis.__dualTest.cancel=false;globalThis.__dualTest.rejectNextStart=true;});
+    await page.locator('#go-deeper').click();
+    await page.getByRole('alert').filter({hasText:'시험용 교체 검색 거부'}).waitFor();
+    const replacement=await app.evaluate(()=>globalThis.__dualTest.fakeStarts.at(-1));
+    assert.equal(replacement.mode,'deep','goDeeper attempts the deep route');
+    assert.equal(replacement.sourceId,'dual-volume-second','chat to program keeps the explicitly chosen non-first volume for goDeeper');
+    assert.deepEqual(await page.locator('.candidate-name').allTextContents(),preserved.names,'a rejected replacement keeps the previous candidates');
+    assert.equal(await page.locator('#preview-content').innerText(),preserved.preview,'a rejected replacement keeps the previous preview');
+    assert.equal(await page.locator('#results-title').innerText(),preserved.title,'a rejected replacement keeps the previous result mode');
+    assert.equal(await page.locator('body').getAttribute('data-has-job'),'true','a rejected replacement keeps the previous job active');
+
+    await page.getByRole('button',{name:'도구 · 안내',exact:true}).click();
+    await page.getByRole('dialog').getByRole('button',{name:'이전 작업 기록',exact:true}).click();
+    const historyDialog=page.getByRole('dialog');await historyDialog.waitFor();
+    const legacySourceHistory=historyDialog.locator('button.choice').filter({hasText:'이전 휴지통 원본 작업'});
+    const legacyModeHistory=historyDialog.locator('button.choice').filter({hasText:'이전 휴지통 모드 작업'});
+    for(const legacy of [legacySourceHistory,legacyModeHistory]){
+      assert.equal(await legacy.isDisabled(),true,'legacy recycle history is visible but disabled');
+      assert.match(await legacy.innerText(),/이전 휴지통 검색 · 다시 검색 미지원/);
+    }
+    const startsBeforeLegacyHistory=await app.evaluate(()=>globalThis.__dualTest.allStarts.length);
+    await legacySourceHistory.dispatchEvent('click');await legacyModeHistory.dispatchEvent('click');
+    assert.equal(await historyDialog.isVisible(),true,'legacy recycle history cannot close into a restart flow');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.allStarts.length),startsBeforeLegacyHistory,'legacy recycle history cannot start another search');
+    await historyDialog.locator('button.choice').filter({hasText:'자료 드라이브 2 (E:)'}).first().click();
+    await historyDialog.waitFor({state:'hidden'});
+    assert.equal(await page.locator('[data-program-route=deleted]').getAttribute('aria-pressed'),'true','program history restores its search route visibly');
+    assert.equal(await page.locator('#program-source').inputValue(),'','volume history requires a visible explicit source choice');
+    assert.match(await page.locator('#program-start').innerText(),/삭제 기록 찾기/);
+
+    await page.getByRole('button',{name:'처음부터',exact:true}).click();
+    await page.getByRole('button',{name:'도구 · 안내',exact:true}).click();
+    await page.getByRole('dialog').getByRole('button',{name:'저장하지 못한 문서 · 자동 저장본',exact:true}).click();
+    const backupDialog=page.getByRole('dialog');await backupDialog.waitFor();
+    assert.match(await backupDialog.innerText(),/자동 저장/,'program backups remain in a visible modal');
+    await backupDialog.getByRole('button',{name:'다른 백업 폴더 선택',exact:true}).click();
+    await backupDialog.waitFor({state:'hidden'});
+    assert.match(await page.locator('#program-start').innerText(),/복사본 검색 시작/,'backup selection exposes the configured program action');
+    assert.notEqual(await page.locator('#program-source').inputValue(),'auto','backup selection remains visible in the program source selector');
+
+    await page.getByRole('button',{name:'처음부터',exact:true}).click();
+    assert.deepEqual(await page.locator('#program-source option').evaluateAll(options=>options.map(option=>option.value)),['auto'],'reset removes the previously selected backup folder');
+    const errorJob=await chooseSecondVolumeInChat();
+    await emitFake(errorJob,'error',{error:{code:'DUAL_TEST_ERROR',message:'시험용 검색 중 오류'}});
+    await page.getByRole('alert').filter({hasText:'시험용 검색 중 오류'}).waitFor();
+    await assertChatLocked('a terminal search error does not end the active chat');
+    await page.locator('#end-chat').click();
+    assert.equal(await page.locator('button[data-view-mode=program]').isEnabled(),true,'the error chat unlocks only after end-chat');
+
+    await page.getByRole('button',{name:'처음부터',exact:true}).click();
+    const recoverJob=await chooseSecondVolumeInChat();
+    await emitFake(recoverJob,'complete',{complete:true,stats:{candidatesFound:1},warnings:[]});
+    await page.waitForFunction(()=>!document.querySelector('#scan-status').offsetParent);
+    assert.equal(await page.locator('#results-title').innerText(),'삭제 기록 후보');
+    assert.match(await page.locator('#deletion-time-note').innerText(),/삭제 기록 후보를 표시/);
+    await page.locator('article.candidate').getByRole('button',{name:'정보 · 미리보기',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('#preview-panel').dataset.state==='ready');
+    assert.match(await page.locator('#preview-content').innerText(),/본문과 함께 보존해 저장/);
+    await page.locator('article.candidate').getByRole('button',{name:'복구해서 저장',exact:true}).click();
+    await page.waitForFunction(()=>document.querySelector('#scan-status')?.textContent.includes('본문 복구 중'));
+    assert.equal((await app.evaluate(()=>globalThis.__dualTest.fakeStarts.at(-1).jobId)),recoverJob);
+    assert.equal((await app.evaluate(()=>globalThis.__dualTest.fakeJobs.find(job=>job.id===globalThis.__dualTest.fakeStarts.at(-1).jobId)?.sourceKind)),'volume');
+    assert.equal((await app.evaluate(()=>globalThis.__dualTest.fakeStarts.filter(call=>call.jobId===globalThis.__dualTest.fakeStarts.at(-1).jobId).length)),1);
+    await emitFake(recoverJob,'recover-complete',{results:[{id:'dual-candidate',name:'두번째장치보고서.txt',status:'saved',path:'fixture-output/result.txt',originalIdentityVerified:false,supplementalStreams:[{name:'Zone.Identifier',size:26,preservation:'preserved'}]}]});
+    await page.waitForFunction(()=>document.querySelector('#results-actions').textContent.includes('파일 저장 1개'));
+    assert.match(await page.locator('#results-actions').innerText(),/삭제 전 원본과 같은지.*별도 확인이 필요/);
+    assert.match(await page.locator('#results-actions').innerText(),/Zone.Identifier.*함께 보존/);
+    await assertChatLocked('recover-complete leaves the conversation active for an explicit end-chat');
+    await page.locator('#end-chat').click();
+    assert.match(await page.locator('#results-actions').innerText(),/파일 저장 1개/,'ending chat preserves recovery completion results');
+    assert.equal(await page.locator('button[data-view-mode=program]').isEnabled(),true);
+
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.recycleProviderCalls),0,'no flow invokes the removed recycle scanning provider');
+    assert.equal(await app.evaluate(()=>globalThis.__dualTest.allStarts.every(request=>request.mode!=='recycle')),true,'no search request uses recycle mode');
+    assert.deepEqual(pageErrors,[]);
+    console.log(JSON.stringify({output,fixture:run,sourceUnchanged:true,previewWithoutDestination:true}));
+  }finally{await app?.close().catch(()=>{});}
+});

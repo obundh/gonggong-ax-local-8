@@ -1,0 +1,34 @@
+{
+  "version": "0.6.0",
+  "trialNumber": 2,
+  "publicAlias": "example-A.png",
+  "bytes": 3061560,
+  "sha256": "969245c7b07fbf558cee1eb7d080d18bd5e531c59fbc95e5e522ce154601af3d",
+  "exactByExternalBaselineComparison": true,
+  "applicationOpenVerified": false,
+  "engineOriginalIdentityVerified": false,
+  "reverifiedAt": "2026-09-30T13:15:50.0088689Z",
+  "scopedRecyclePairs": 5,
+  "globalRecycleBinEmptied": false,
+  "baselineUsedAsRecoveryInput": false,
+  "checks": [
+    {
+      "kind": "native-recovered-output",
+      "bytes": 3061560,
+      "sha256": "969245c7b07fbf558cee1eb7d080d18bd5e531c59fbc95e5e522ce154601af3d",
+      "matchesExpected": true
+    },
+    {
+      "kind": "curated-copy-of-recovered-output",
+      "bytes": 3061560,
+      "sha256": "969245c7b07fbf558cee1eb7d080d18bd5e531c59fbc95e5e522ce154601af3d",
+      "matchesExpected": true
+    },
+    {
+      "kind": "baseline-comparison-only",
+      "bytes": 3061560,
+      "sha256": "969245c7b07fbf558cee1eb7d080d18bd5e531c59fbc95e5e522ce154601af3d",
+      "matchesExpected": true
+    }
+  ]
+}

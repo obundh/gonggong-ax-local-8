@@ -1,0 +1,52 @@
+# Advanced NTFS data attributes
+
+`engine/ntfs-image.mjs` supports a conservative subset of NTFS 3.0/3.1 nonresident sparse and initialized-data semantics. The engine remains read-only and uses only the supplied image or volume provider.
+
+Supported:
+
+- Files containing an ATTRIBUTE_LIST cannot reuse a captured body from another search until the link key also binds every extension record. This restriction includes ordinary split files. Same-search capture, preview, and recovery retain the existing extension-fingerprint checks.
+
+- A sparse mapping-pairs entry with an offset-field size of zero is a virtual cluster run with no physical LCN. It contributes to logical capacity but not allocated size.
+- Sparse holes are returned as zero bytes. They are excluded from volume-allocation bitmap and metadata-overlap checks because they name no physical clusters.
+- Physical runs still require valid, non-overlapping, in-volume LCNs and must currently be free in the NTFS volume `$Bitmap` before recovery and before publication.
+- A nonresident attribute may have `InitializedSize < DataSize`. Bytes from `InitializedSize` through `DataSize` are returned as zeros. The mapping-pairs list must still cover `DataSize`, and `InitializedSize <= DataSize <= virtual run capacity` must hold.
+- Ordinary streams and the supported compact sparse header use `AllocatedSize` as physical-run capacity. For the supported extended sparse header, `AllocatedSize` is logical VCN capacity and its extra size is physical-run capacity. Sparse mapping pairs and `ATTRIBUTE_FLAG_SPARSE` must agree, and the file's standard-information `FILE_ATTRIBUTE_SPARSE_FILE` bit must agree with the data stream.
+- Recovery refreshes the MFT and volume allocation-bitmap records before the first data read and again before publishing. The scan may reuse its initialized metadata snapshot for bounded traversal speed; recovery never relies on that snapshot for the selected file's allocation decision.
+- NTFS LZNT1 data is supported only when the volume uses 4096-byte clusters, the nonresident attribute declares compression unit exponent 4, and every mapping-pairs unit covers exactly 16 clusters (65536 logical bytes).
+- Since 0.5.17, compressed `AllocatedLength` (offset 0x28) is checked against logical VCN capacity, and `TotalAllocated` (offset 0x40, internally named `compressedSize`) against the physical run total. The older test fixtures incorrectly made both fields physical sizes; those constructors are corrected. The previous malformed header convention is not retained as a compatibility mode.
+- A compressed unit must decode at least its initialized prefix and at most 65536 bytes. The engine copies only initialized bytes and returns zeros after `InitializedSize`, trimming output at logical `DataSize`. Encoded bytes beyond these limits are never published as file content. A short decode or a physical read failure is an error, not a zero-filled hole.
+- A compression unit with 16 physical clusters is copied as raw data. A unit with a physical prefix followed by a sparse tail is read from its physical clusters and decoded as LZNT1. A wholly sparse unit is zero-filled. Physical data after the sparse tail, partial unit mappings, mismatched allocated/compressed sizes, and combined compressed/sparse attribute flags fail closed.
+- The original `engine/lznt1.mjs` decoder accepts only the MS-XCA chunk signature, bounds every encoded chunk and expanded chunk to 4096 bytes, validates back-reference displacement before bytewise overlapping copies, and caps output at the caller's compression-unit size. Nonzero bytes after an end marker are rejected.
+- Tests cover Microsoft's complete published LZNT1 example, a full 65536-byte independent buffer produced by Windows `RtlCompressBuffer`, a complete synthetic NTFS compressed unit, a raw unit, malformed mappings, malformed encoded data, and recovery hashes.
+- A deleted file whose base record contains one resident, unnamed `$ATTRIBUTE_LIST` can be recovered when its uncompressed, unnamed nonresident `$DATA` is split across the base record and extension records. Since 0.5.18 this includes the supported sparse header forms as well as ordinary data. Every base attribute must have one exact list entry. Every extension record must contain exactly one `$DATA` fragment and point back to the base record.
+- Split sparse support reuses the existing stream reader and allocation checks. Supported base forms are the compact unit-0 header with physical allocated size, and the unit-4 extended header with logical allocated size plus physical total. Continuations use unit 0 and zero base-only size fields; every extent must carry the same sparse flag. Adjacent holes may span record boundaries. Only declared holes and the uninitialized tail yield zeros; physical read errors fail. Output is a regular file containing logical bytes, not a preservation of the source sparse allocation attribute.
+- Attribute-list validation is bounded to 64 KiB, 256 entries, and 64 distinct extension records per file. List entries must be 8-byte aligned and strictly ordered. Type, name, attribute ID, lowest VCN, record number, record sequence, and base-record ownership must all match. Non-first fragments must leave base-fragment-only size fields zero. Missing, duplicate, cyclic, noncontiguous, or physically overlapping fragments fail closed.
+- A scan records the SHA-256 fingerprint of every accepted extension record. Recovery rereads and compares all of them before copying and before publication. Image checkpoint entries include those extension fingerprints, and resume rejects a changed or forged extension proof. Checkpoint export remains synchronous and version 1; `extensions` is an optional array on each candidate entry.
+- A data stream is limited to 65536 mapping-pair runs after all fragments are combined. Physical overlap validation sorts the physical extents once and compares adjacent ranges instead of comparing every pair.
+- LZNT1 metadata is limited to 65536 compression units before the unit array is allocated. At 4096-byte clusters and 16 clusters per unit, this is a 4 GiB logical-stream ceiling for compressed recovery. Unit construction advances through the ordered runlist rather than rescanning every run for every unit. Larger compressed metadata is reported as `unsupported`.
+
+Still unsupported:
+
+- NTFS compression on cluster sizes other than 4096 bytes, compression unit exponents other than 4, formats other than LZNT1, split compression units, and compressed attributes whose mapping or size fields cannot be proved.
+- Nonresident or named `$ATTRIBUTE_LIST` values, nested attribute lists, extension records with additional attributes, split compressed streams, split sparse layouts outside the forms described above, multiple fragments in one extension record, alternate data streams outside the narrow policy below, encrypted attributes, and reparse points.
+
+## Zone.Identifier preservation (0.3.4)
+
+One unflagged resident `$DATA` named exactly `Zone.Identifier`, at most 512 bytes, in a base record without `$ATTRIBUTE_LIST` is supported alongside the normal unnamed body. Other names, duplicate or nonresident streams, malformed values, and split/listed named streams remain unsupported. Candidate metadata reports the required preservation policy; preview returns only the unnamed body.
+
+Recovery writes the exact bytes to the output file's `:Zone.Identifier`, syncs and verifies them while the output remains in a private working directory, and publishes only after the existing source fingerprint and allocation checks pass. The destination must support the ADS write and byte verification on Windows; failure produces no completed output. Download trust metadata is never silently discarded. The result reports `supplementalStreams` separately from the SHA-256 of the unnamed body. Neither the hash nor a preserved download marker proves that recovered body bytes still match the pre-deletion original.
+- Streams with more than 65536 mapping-pair runs and compressed streams larger than 65536 complete compression units.
+- Sparse-file support does not imply that every NTFS 3.x attribute layout is supported. Candidate status remains `unsupported` or `conflict` when the required metadata cannot be proved.
+
+Microsoft references:
+
+- [ATTRIBUTE_RECORD_HEADER](https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-record-header) defines the sparse attribute flag, allocated size, file size, and valid-data length fields for NTFS 3.0/3.1.
+- [NTFS3 on-disk attribute structure](https://github.com/torvalds/linux/blob/master/fs/ntfs3/ntfs.h) distinguishes logical allocation, valid data size and physical total. This is a format reference; no driver code is copied into the product.
+- [ATTRIBUTE_LIST_ENTRY](https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-list-entry) defines the ordered, quadword-aligned list entry, lowest VCN, segment reference, name, and attribute ID used to bind each fragment.
+- [Master File Table](https://learn.microsoft.com/en-us/windows/win32/devnotes/master-file-table) describes a file's base MFT segment, additional segments, and the attribute list that locates them.
+- [Sparse File Operations](https://learn.microsoft.com/en-us/windows/win32/fileio/sparse-file-operations) documents that reads from deallocated sparse regions return zero-filled data.
+- [FSCTL_QUERY_ALLOCATED_RANGES](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ni-ntifs-fsctl_query_allocated_ranges) distinguishes allocated ranges that may contain nonzero data from sparse zeroed ranges.
+- [MS-XCA LZNT1 buffer chunks](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/cba0fa15-bd62-4eda-8838-8fc7ab406df1) defines the chunk header, signature, size, compressed flag, and optional end marker.
+- [MS-XCA LZNT1 processing rules](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-xca/b1ba6d34-499c-4017-ab0c-fe2daee93efc) defines independent 4096-byte chunks and forward overlapping-copy behavior.
+- [MS-FSCC extent semantics](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/dd2be29e-4f60-4bb4-b68a-20f2c34ac0d2) documents 16-cluster compression units and their sparse remainder.
+- [RtlCompressBuffer](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/nf-ntifs-rtlcompressbuffer) documents the Windows LZNT1 oracle used by the independent fixture test.

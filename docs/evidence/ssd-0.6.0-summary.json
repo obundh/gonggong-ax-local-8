@@ -1,0 +1,135 @@
+{
+  "status": "completed",
+  "version": "0.6.0",
+  "trials": 10,
+  "denominator": 50,
+  "found": 22,
+  "traceFound": 41,
+  "metadataFound": 50,
+  "originalNameLinked": 50,
+  "attempted": 22,
+  "written": 21,
+  "exact": 12,
+  "nameRestored": 21,
+  "exactPerTrial": [
+    0,
+    1,
+    2,
+    0,
+    3,
+    1,
+    4,
+    0,
+    1,
+    0
+  ],
+  "scanSeconds": {
+    "n": 10,
+    "median": 46.132000000000005,
+    "min": 44.438,
+    "max": 53.854,
+    "p90NearestRank": 53.662
+  },
+  "nativeScanSeconds": {
+    "n": 10,
+    "median": 29.9685,
+    "min": 28.465,
+    "max": 34.46,
+    "p90NearestRank": 33.602
+  },
+  "vacancyScanSeconds": {
+    "n": 10,
+    "median": 16.2575,
+    "min": 15.568,
+    "max": 20.06,
+    "p90NearestRank": 19.394
+  },
+  "wholeTrialSeconds": {
+    "n": 10,
+    "median": 95.40399992465973,
+    "min": 84.49500012397766,
+    "max": 100.09500002861023,
+    "p90NearestRank": 100.08400011062622
+  },
+  "peakRssMiB": 595.10546875,
+  "warnings": [
+    "DIR_FREED_LIMIT",
+    "DIR_FREED_PARTIAL",
+    "DIR_SLACK_LIMIT",
+    "USN_RETAINED_RANGE_LIMIT"
+  ],
+  "files": {
+    "fixture-01.pdf": {
+      "type": "pdf",
+      "trials": 10,
+      "exact": 0,
+      "metadataFound": 10,
+      "written": 0,
+      "nameRestored": 0
+    },
+    "fixture-02.hwp": {
+      "type": "hwp",
+      "trials": 10,
+      "exact": 1,
+      "metadataFound": 10,
+      "written": 3,
+      "nameRestored": 3
+    },
+    "fixture-03.jpg": {
+      "type": "jpg",
+      "trials": 10,
+      "exact": 3,
+      "metadataFound": 10,
+      "written": 5,
+      "nameRestored": 5
+    },
+    "fixture-04.png": {
+      "type": "png",
+      "trials": 10,
+      "exact": 2,
+      "metadataFound": 10,
+      "written": 4,
+      "nameRestored": 4
+    },
+    "fixture-05.png": {
+      "type": "png",
+      "trials": 10,
+      "exact": 6,
+      "metadataFound": 10,
+      "written": 9,
+      "nameRestored": 9
+    }
+  },
+  "methods": {
+    "native": {
+      "exact": 12,
+      "found": 22,
+      "metadataFound": 50,
+      "written": 21,
+      "nameRestored": 21,
+      "nonexactSaved": 9
+    },
+    "vacancy": {
+      "exact": 0,
+      "found": 9,
+      "metadataFound": 50,
+      "written": 4,
+      "nameRestored": 4,
+      "nonexactSaved": 4
+    }
+  },
+  "scope": "Fresh copies of the same five files on live C: SSD, ten deletion trials. Candidate discovery frozen before oracle-assisted selection. The test used the native volume helper. RSS sampling covers only the Node harness/workers and excludes the native helper and Electron; the trial was not GUI-driven.",
+  "measurementDate": "2026-09-27",
+  "publicationDate": "2026-10-02",
+  "sourceReceiptSha256": "3616663e067270eced8e2021ad5dc7bf93ce72249cc4207be23a959dc54ffaea",
+  "privacy": "Original filenames replaced with aliases; source files, private content, full candidate logs and device identifiers are not published.",
+  "interpretation": {
+    "uniqueFiles": 5,
+    "newCopiesEachTrial": true,
+    "oracleSelectionAfterCandidateFreeze": true,
+    "guiDriven": false,
+    "generalRecoveryRate": false,
+    "new061SsdMeasurement": false,
+    "causesOfAllFailuresProven": false
+  }
+}

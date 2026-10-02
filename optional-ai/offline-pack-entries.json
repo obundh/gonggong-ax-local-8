@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 2,
+  "archiveName": "RecoveryChat-AI-Pack.zip",
+  "metadata": [
+    "optional-ai/package.json",
+    "optional-ai/package-lock.json",
+    "optional-ai/SBOM.json",
+    "optional-ai/models/README.md",
+    "models/README.md"
+  ],
+  "manifests": [
+    {
+      "path": "optional-ai/runtime-manifest.json",
+      "root": "optional-ai"
+    },
+    {
+      "path": "models/name-embedding/paraphrase-multilingual-MiniLM-L12-v2/model-manifest.json",
+      "root": "models/name-embedding/paraphrase-multilingual-MiniLM-L12-v2"
+    }
+  ],
+  "exclude": [
+    "optional-ai/node_modules/**",
+    "optional-ai/download-model.mjs",
+    "optional-ai/prepare-runtime.py",
+    "optional-ai/smoke-model.mjs"
+  ],
+  "notes": [
+    "Only files named by metadata or the two verified manifests are packaged.",
+    "vendor/node_modules is curated runtime content and must be included; only optional-ai/node_modules is excluded.",
+    "The normal application ZIP excludes optional-ai and models/name-embedding.",
+    "Extract this archive beside RecoveryChat.exe so optional-ai and models are executable siblings."
+  ]
+}

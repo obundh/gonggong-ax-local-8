@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-02",
+  "version": "0.6.1",
+  "nativeBuild": "passed",
+  "engineTests": {
+    "passed": 677,
+    "failed": 0,
+    "skipped": 2,
+    "skipReason": "Windows symlink creation EPERM",
+    "runsInHistoricalDevelopmentEnvironment": true,
+    "freshIndependentClone": false
+  },
+  "canonicalChecklistRepair": "Restored canonical document after a public-link annotation changed generated description text; focused 4 and full suite rerun passed.",
+  "runtimeSourceFilesCompared": 64,
+  "runtimeSourceIdentical": true,
+  "criticalMarkdownLinksBroken": [],
+  "privateMarkerFindings": [],
+  "secretPatternFindings": [],
+  "oversizedTrackedFiles": [],
+  "physicalDeletionTest": false,
+  "newDesktopGuiTest": false,
+  "externalDocumentOpenTest": false,
+  "scope": "Publication checks only; no new recovery-rate evidence; pattern checks are not exhaustive privacy/security certification."
+}

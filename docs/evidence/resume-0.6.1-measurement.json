@@ -1,0 +1,214 @@
+{
+  "source": "synthetic-256MiB-image.raw",
+  "size": 268435456,
+  "budget": 134217728,
+  "fixtureOnly": true,
+  "physicalDeletionTest": false,
+  "cachesFlushed": false,
+  "runs": [
+    {
+      "version": "old",
+      "iteration": 1,
+      "firstMs": 195.47490000000002,
+      "secondMs": 375.6095,
+      "totalMs": 571.0844000000001,
+      "firstScanBytes": 134217728,
+      "secondScanBytes": 268435456,
+      "complete": true,
+      "count": 5,
+      "hashes": [
+        {
+          "offset": 32,
+          "sha256": "93a8e67f2c139b6a0dfea58d6fc8191a120ded73347574733223538fe9bc7f71"
+        },
+        {
+          "offset": 1048574,
+          "sha256": "5680ed9ef345cbdd35c1cdf15baf2b534486e1056c0de9910e3dadf6b12c810d"
+        },
+        {
+          "offset": 134217726,
+          "sha256": "3668ea5b68e66ccbc3cb6a10283126609f8baa502a3cea32e7b36fb7a50070bd"
+        },
+        {
+          "offset": 135266304,
+          "sha256": "62e5b8bc30ed7dd2fe2fca5e7c096e2be5b1343e437e468ab36459ad20be99bb"
+        },
+        {
+          "offset": 268434432,
+          "sha256": "b7c73b9ec2118c2a30a9b13658554bfa82ba74e7574f12973aacdf751017c6a1"
+        }
+      ],
+      "exact": true
+    },
+    {
+      "version": "new",
+      "iteration": 1,
+      "firstMs": 196.74289999999996,
+      "secondMs": 206.3087999999999,
+      "totalMs": 403.05169999999987,
+      "firstScanBytes": 134217728,
+      "secondScanBytes": 134217735,
+      "complete": true,
+      "count": 5,
+      "hashes": [
+        {
+          "offset": 32,
+          "sha256": "93a8e67f2c139b6a0dfea58d6fc8191a120ded73347574733223538fe9bc7f71"
+        },
+        {
+          "offset": 1048574,
+          "sha256": "5680ed9ef345cbdd35c1cdf15baf2b534486e1056c0de9910e3dadf6b12c810d"
+        },
+        {
+          "offset": 134217726,
+          "sha256": "3668ea5b68e66ccbc3cb6a10283126609f8baa502a3cea32e7b36fb7a50070bd"
+        },
+        {
+          "offset": 135266304,
+          "sha256": "62e5b8bc30ed7dd2fe2fca5e7c096e2be5b1343e437e468ab36459ad20be99bb"
+        },
+        {
+          "offset": 268434432,
+          "sha256": "b7c73b9ec2118c2a30a9b13658554bfa82ba74e7574f12973aacdf751017c6a1"
+        }
+      ],
+      "exact": true
+    },
+    {
+      "version": "new",
+      "iteration": 2,
+      "firstMs": 193.26009999999997,
+      "secondMs": 203.31110000000012,
+      "totalMs": 396.5712000000001,
+      "firstScanBytes": 134217728,
+      "secondScanBytes": 134217735,
+      "complete": true,
+      "count": 5,
+      "hashes": [
+        {
+          "offset": 32,
+          "sha256": "93a8e67f2c139b6a0dfea58d6fc8191a120ded73347574733223538fe9bc7f71"
+        },
+        {
+          "offset": 1048574,
+          "sha256": "5680ed9ef345cbdd35c1cdf15baf2b534486e1056c0de9910e3dadf6b12c810d"
+        },
+        {
+          "offset": 134217726,
+          "sha256": "3668ea5b68e66ccbc3cb6a10283126609f8baa502a3cea32e7b36fb7a50070bd"
+        },
+        {
+          "offset": 135266304,
+          "sha256": "62e5b8bc30ed7dd2fe2fca5e7c096e2be5b1343e437e468ab36459ad20be99bb"
+        },
+        {
+          "offset": 268434432,
+          "sha256": "b7c73b9ec2118c2a30a9b13658554bfa82ba74e7574f12973aacdf751017c6a1"
+        }
+      ],
+      "exact": true
+    },
+    {
+      "version": "old",
+      "iteration": 2,
+      "firstMs": 186.33940000000007,
+      "secondMs": 379.6110000000001,
+      "totalMs": 565.9504000000002,
+      "firstScanBytes": 134217728,
+      "secondScanBytes": 268435456,
+      "complete": true,
+      "count": 5,
+      "hashes": [
+        {
+          "offset": 32,
+          "sha256": "93a8e67f2c139b6a0dfea58d6fc8191a120ded73347574733223538fe9bc7f71"
+        },
+        {
+          "offset": 1048574,
+          "sha256": "5680ed9ef345cbdd35c1cdf15baf2b534486e1056c0de9910e3dadf6b12c810d"
+        },
+        {
+          "offset": 134217726,
+          "sha256": "3668ea5b68e66ccbc3cb6a10283126609f8baa502a3cea32e7b36fb7a50070bd"
+        },
+        {
+          "offset": 135266304,
+          "sha256": "62e5b8bc30ed7dd2fe2fca5e7c096e2be5b1343e437e468ab36459ad20be99bb"
+        },
+        {
+          "offset": 268434432,
+          "sha256": "b7c73b9ec2118c2a30a9b13658554bfa82ba74e7574f12973aacdf751017c6a1"
+        }
+      ],
+      "exact": true
+    },
+    {
+      "version": "old",
+      "iteration": 3,
+      "firstMs": 186.0558000000001,
+      "secondMs": 371.4542999999999,
+      "totalMs": 557.5101,
+      "firstScanBytes": 134217728,
+      "secondScanBytes": 268435456,
+      "complete": true,
+      "count": 5,
+      "hashes": [
+        {
+          "offset": 32,
+          "sha256": "93a8e67f2c139b6a0dfea58d6fc8191a120ded73347574733223538fe9bc7f71"
+        },
+        {
+          "offset": 1048574,
+          "sha256": "5680ed9ef345cbdd35c1cdf15baf2b534486e1056c0de9910e3dadf6b12c810d"
+        },
+        {
+          "offset": 134217726,
+          "sha256": "3668ea5b68e66ccbc3cb6a10283126609f8baa502a3cea32e7b36fb7a50070bd"
+        },
+        {
+          "offset": 135266304,
+          "sha256": "62e5b8bc30ed7dd2fe2fca5e7c096e2be5b1343e437e468ab36459ad20be99bb"
+        },
+        {
+          "offset": 268434432,
+          "sha256": "b7c73b9ec2118c2a30a9b13658554bfa82ba74e7574f12973aacdf751017c6a1"
+        }
+      ],
+      "exact": true
+    },
+    {
+      "version": "new",
+      "iteration": 3,
+      "firstMs": 183.4427999999998,
+      "secondMs": 202.8807999999999,
+      "totalMs": 386.3235999999997,
+      "firstScanBytes": 134217728,
+      "secondScanBytes": 134217735,
+      "complete": true,
+      "count": 5,
+      "hashes": [
+        {
+          "offset": 32,
+          "sha256": "93a8e67f2c139b6a0dfea58d6fc8191a120ded73347574733223538fe9bc7f71"
+        },
+        {
+          "offset": 1048574,
+          "sha256": "5680ed9ef345cbdd35c1cdf15baf2b534486e1056c0de9910e3dadf6b12c810d"
+        },
+        {
+          "offset": 134217726,
+          "sha256": "3668ea5b68e66ccbc3cb6a10283126609f8baa502a3cea32e7b36fb7a50070bd"
+        },
+        {
+          "offset": 135266304,
+          "sha256": "62e5b8bc30ed7dd2fe2fca5e7c096e2be5b1343e437e468ab36459ad20be99bb"
+        },
+        {
+          "offset": 268434432,
+          "sha256": "b7c73b9ec2118c2a30a9b13658554bfa82ba74e7574f12973aacdf751017c6a1"
+        }
+      ],
+      "exact": true
+    }
+  ]
+}

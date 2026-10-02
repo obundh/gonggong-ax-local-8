@@ -1,0 +1,12 @@
+{
+  "name": "recovery-chat-optional-filename-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "download:model": "node download-model.mjs",
+    "smoke:model": "node smoke-model.mjs",
+    "prepare:runtime": "python prepare-runtime.py"
+  }
+}

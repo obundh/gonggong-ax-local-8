@@ -1,0 +1,109 @@
+{
+  "provenance": "2026-09-14 actual mixed-six native recovery event, output locations removed",
+  "results": [
+    {
+      "id": "partition:synthetic-redacted-partition/ntfs:435973:6",
+      "name": "$RT6LYY4.pdf",
+      "status": "failed",
+      "sha256": null,
+      "integrity": null,
+      "document": null,
+      "nameRecovery": null,
+      "path": null
+    },
+    {
+      "id": "partition:synthetic-redacted-partition/ntfs:435978:3",
+      "name": "$R5MSQI5.docx",
+      "status": "saved",
+      "sha256": "c1f271ca672c11d31974f752726f9bf46b340478986c358958f7e373b505a93f",
+      "integrity": {
+        "status": "verified",
+        "sha256": "c1f271ca672c11d31974f752726f9bf46b340478986c358958f7e373b505a93f",
+        "size": 57611,
+        "identity": {
+          "dev": "1487166550",
+          "ino": "281474977727078",
+          "size": "57611",
+          "mtimeMs": "1789385478959"
+        }
+      },
+      "document": {
+        "status": "format-mismatch",
+        "format": "unknown",
+        "originalIdentityVerified": false,
+        "applicationOpenVerified": false,
+        "reason": "EXTENSION_SIGNATURE_MISMATCH",
+        "expectedFormat": "DOCX",
+        "detectedFormat": "unknown",
+        "previewType": null,
+        "truncated": false
+      },
+      "nameRecovery": {
+        "name": "$R5MSQI5.docx",
+        "originalNameStatus": "unknown",
+        "source": null,
+        "discoveredName": "$R5MSQI5.docx",
+        "savedName": "$R5MSQI5.docx",
+        "adjustedForFilesystem": false
+      },
+      "path": "captured-output/$R5MSQI5.docx"
+    },
+    {
+      "id": "partition:synthetic-redacted-partition/ntfs:435974:3",
+      "name": "$RM4I4PC.txt",
+      "status": "failed",
+      "sha256": null,
+      "integrity": null,
+      "document": null,
+      "nameRecovery": null,
+      "path": null
+    },
+    {
+      "id": "partition:synthetic-redacted-partition/ntfs:435976:19",
+      "name": "$RSPA2FG.docx",
+      "status": "saved",
+      "sha256": "2a348a7761d6b05a3350cb5cafc37a3ec4d771fa55ccb922fb304dc033db38c4",
+      "integrity": {
+        "status": "verified",
+        "sha256": "2a348a7761d6b05a3350cb5cafc37a3ec4d771fa55ccb922fb304dc033db38c4",
+        "size": 37373,
+        "identity": {
+          "dev": "1487166550",
+          "ino": "281474977727081",
+          "size": "37373",
+          "mtimeMs": "1789385479039"
+        }
+      },
+      "document": {
+        "status": "format-mismatch",
+        "format": "unknown",
+        "originalIdentityVerified": false,
+        "applicationOpenVerified": false,
+        "reason": "EXTENSION_SIGNATURE_MISMATCH",
+        "expectedFormat": "DOCX",
+        "detectedFormat": "unknown",
+        "previewType": null,
+        "truncated": false
+      },
+      "nameRecovery": {
+        "name": "$RSPA2FG.docx",
+        "originalNameStatus": "unknown",
+        "source": null,
+        "discoveredName": "$RSPA2FG.docx",
+        "savedName": "$RSPA2FG.docx",
+        "adjustedForFilesystem": false
+      },
+      "path": "captured-output/$RSPA2FG.docx"
+    },
+    {
+      "id": "partition:synthetic-redacted-partition/ntfs:435975:11",
+      "name": "$RVQCWV9.txt",
+      "status": "failed",
+      "sha256": null,
+      "integrity": null,
+      "document": null,
+      "nameRecovery": null,
+      "path": null
+    }
+  ]
+}

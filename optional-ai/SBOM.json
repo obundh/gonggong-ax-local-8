@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "scope": "RecoveryChat optional filename semantic search pack for win32-x64",
+  "generatedAt": "2026-09-12",
+  "components": [
+    {
+      "name": "@huggingface/transformers",
+      "version": "4.2.0",
+      "license": "Apache-2.0",
+      "source": "https://github.com/huggingface/transformers.js/tree/54652ba3366ccd1e3b64e689a96504309e6fb53b",
+      "npmTarball": "https://registry.npmjs.org/@huggingface/transformers/-/transformers-4.2.0.tgz",
+      "npmIntegrity": "sha512-8BRCoBMH0XsWaEIamuR0LrJGAfftgHAfb2Vrffy0VKlSAE/MnUJ5/h/zTfEP3fDIft+nk7TqB8xXEyABGitBjQ==",
+      "included": ["dist/transformers.node.mjs (patched as documented)"],
+      "omitted": ["image processing dependency sharp", "web runtime", "examples and development files"]
+    },
+    {
+      "name": "onnxruntime-node",
+      "version": "1.24.3",
+      "license": "MIT",
+      "source": "https://github.com/microsoft/onnxruntime/tree/v1.24.3",
+      "npmTarball": "https://registry.npmjs.org/onnxruntime-node/-/onnxruntime-node-1.24.3.tgz",
+      "npmIntegrity": "sha512-JH7+czbc8ALA819vlTgcV+Q214/+VjGeBHDjX81+ZCD0PCVCIFGFNtT0V4sXG/1JXypKPgScQcB3ij/hk3YnTg==",
+      "included": ["dist runtime", "win32-x64 CPU binding", "onnxruntime.dll"],
+      "omitted": ["install scripts", "adm-zip", "global-agent", "non-Windows binaries", "DirectML support files"]
+    },
+    {
+      "name": "onnxruntime-common",
+      "version": "1.24.3",
+      "license": "MIT",
+      "source": "https://github.com/microsoft/onnxruntime/tree/v1.24.3",
+      "npmTarball": "https://registry.npmjs.org/onnxruntime-common/-/onnxruntime-common-1.24.3.tgz",
+      "npmIntegrity": "sha512-GeuPZO6U/LBJXvwdaqHbuUmoXiEdeCjWi/EG7Y1HNnDwJYuk6WUbNXpF6luSUY8yASul3cmUlLGrCCL1ZgVXqA==",
+      "included": ["package runtime"],
+      "omitted": []
+    }
+  ],
+  "intentionallyOmitted": [
+    {
+      "name": "sharp",
+      "resolvedVersionInUpstreamInstall": "0.34.5",
+      "reason": "Filename embeddings never process images; the static import is replaced by a fail-closed stub.",
+      "advisories": ["GHSA-f88m-g3jw-g9cj", "GHSA-rgj7-g3m4-5g8c"]
+    },
+    {
+      "name": "adm-zip",
+      "resolvedVersionInUpstreamInstall": "0.5.18",
+      "reason": "Only the upstream native-binary installer uses it; this pack ships fixed preselected binary files and has no installer.",
+      "advisories": ["GHSA-xcpc-8h2w-3j85", "GHSA-vwc7-r8mq-g2x9"]
+    },
+    {
+      "name": "global-agent",
+      "resolvedVersionInUpstreamInstall": "3.0.0",
+      "reason": "Only the omitted upstream downloader uses it.",
+      "advisories": []
+    },
+    {
+      "name": "onnxruntime-web",
+      "resolvedVersionInUpstreamInstall": "1.26.0-dev.20260416-b7804b056c",
+      "reason": "The optional worker uses the native Windows CPU binding.",
+      "advisories": []
+    }
+  ],
+  "verification": {
+    "runtimeFiles": "runtime-manifest.json contains the size and SHA-256 of every file loaded by the curated runtime.",
+    "rebuild": "prepare-runtime.py downloads only pinned HTTPS sources, verifies their npm SHA-512 integrity, selects regular files without extractall, applies the two documented transformations, and writes a new runtime manifest.",
+    "auditLimit": "npm audit reports only package-lock.json dependencies. The zero finding for this dependency-free optional package does not scan vendored files and is not proof that the full AI pack is vulnerability-free."
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "version": "0.6.1",
+  "status": "accepted-with-stated-scope",
+  "scope": "immutable image carving resume only",
+  "physicalDeletionTest": false,
+  "requiredAccepted": 21,
+  "requiredTotal": 54,
+  "requiredPercent": 38.9,
+  "F31FullyAccepted": false,
+  "measurementDate": "2026-09-27",
+  "parentChecks": {
+    "fullEngine": {
+      "passed": 677,
+      "failed": 0,
+      "skipped": 2,
+      "skipReasons": [
+        "symlink creation EPERM"
+      ]
+    },
+    "postFinalRootFixIntegration": {
+      "passed": 8,
+      "failed": 0
+    },
+    "priorAndNewArtifactSave": {
+      "passed": 1,
+      "failed": 0
+    },
+    "packagedUI": {
+      "passed": 2,
+      "failed": 0,
+      "screenshotsViewed": true
+    }
+  },
+  "packageIntegrity": {
+    "version": "0.6.1",
+    "checked": 103,
+    "match": true,
+    "files": null
+  },
+  "zipIntegrity": {
+    "sha256": "77398423d41a246a2650aa50302ffe316e9585838887875be5dae325ae4595a9",
+    "entries": 159,
+    "allMatchUnpacked": true,
+    "files": null
+  },
+  "publicationNote": "Historical acceptance, not a fresh 2026-10-02 SSD or external-app verification. Raw local log paths and private data omitted."
+}

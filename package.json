@@ -1,0 +1,217 @@
+{
+  "name": "recovery-chat-desktop",
+  "version": "0.6.1",
+  "private": true,
+  "description": "공공 AX 로컬 시리즈 8 - 파일 복구",
+  "author": "Recovery Chat",
+  "license": "UNLICENSED",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "npm run build:native && electron-builder --win zip --x64",
+    "test:engine": "node --test test/*.test.mjs",
+    "engine": "node engine/cli.mjs",
+    "fixture:ntfs": "node test/ntfs-fixtures.mjs",
+    "demo:engine": "node scripts/demo-engine.mjs",
+    "progress": "node scripts/progress.mjs",
+    "build:native": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-native.ps1",
+    "test:desktop": "node --test --test-concurrency=1 test/electron-dual-mode.mjs test/electron-period-first.mjs test/electron-workspace.mjs test/electron-stage2.mjs test/electron-stage4.mjs test/electron-recycle-metadata.mjs test/electron-directory-slack.mjs test/electron-hwp-carving.mjs test/electron-deep-coverage.mjs test/electron-deep-resume.mjs test/electron-recent-priority.mjs test/electron-stage5.mjs test/electron-earlier-capture.mjs test/electron-partial-zip.mjs test/electron-autosave.mjs test/electron-recent-traces.mjs"
+  },
+  "build": {
+    "appId": "local.recoverychat.desktop",
+    "productName": "공공 AX 로컬 시리즈 8 - 파일 복구",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "workspace.css",
+      "ui/**",
+      "app.js",
+      "favicon.svg",
+      "electron/main.cjs",
+      "electron/preload.cjs",
+      "electron/icon.ico",
+      "electron/icon.png",
+      "assets/brand/**",
+      "package.json",
+      "engine/**",
+      "native/bin/**",
+      "native/*.md",
+      "README.md",
+      "SUPPORT.md",
+      "THIRD_PARTY_NOTICES.md",
+      "licenses/**"
+    ],
+    "asar": true,
+    "win": {
+      "target": "zip",
+      "icon": "electron/icon.ico",
+      "signExecutable": false,
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "asarUnpack": [
+      "engine/**",
+      "native/bin/**"
+    ],
+    "artifactName": "RecoveryChat-${version}-win-x64.${ext}",
+    "extraResources": [
+      {
+        "from": "native/bin/RecoveryChat.VolumeReader.exe",
+        "to": "app.asar.unpacked/native/bin/RecoveryChat.VolumeReader.exe"
+      }
+    ],
+    "extraFiles": [
+      { "from": "docs/deep-resume-0.6.1.md", "to": "docs/deep-resume-0.6.1.md" },
+      {
+        "from": "docs/resource-research-0.6.0.md",
+        "to": "docs/resource-research-0.6.0.md"
+      },
+      {
+        "from": "docs/independent-comparison-0.6.0.md",
+        "to": "docs/independent-comparison-0.6.0.md"
+      },
+      {
+        "from": "docs/ten-stage-closeout-0.6.0.md",
+        "to": "docs/ten-stage-closeout-0.6.0.md"
+      },
+      {
+        "from": "docs/autosave-0.5.20.md",
+        "to": "docs/autosave-0.5.20.md"
+      },
+      {
+        "from": "docs/partial-zip-salvage-0.5.19.md",
+        "to": "docs/partial-zip-salvage-0.5.19.md"
+      },
+      {
+        "from": "docs/split-sparse-0.5.18.md",
+        "to": "docs/split-sparse-0.5.18.md"
+      },
+      {
+        "from": "docs/compression-0.5.17.md",
+        "to": "docs/compression-0.5.17.md"
+      },
+      {
+        "from": "docs/capture-carry-0.5.16.md",
+        "to": "docs/capture-carry-0.5.16.md"
+      },
+      {
+        "from": "docs/hardening-0.5.15.md",
+        "to": "docs/hardening-0.5.15.md"
+      },
+      {
+        "from": "docs/stage5-0.5.14.md",
+        "to": "docs/stage5-0.5.14.md"
+      },
+      {
+        "from": "docs/stage4-0.5.13.md",
+        "to": "docs/stage4-0.5.13.md"
+      },
+      {
+        "from": "docs/stage6-0.5.12.md",
+        "to": "docs/stage6-0.5.12.md"
+      },
+      {
+        "from": "docs/stage6-0.5.11.md",
+        "to": "docs/stage6-0.5.11.md"
+      },
+      {
+        "from": "docs/stage4-0.5.10.md",
+        "to": "docs/stage4-0.5.10.md"
+      },
+      {
+        "from": "docs/stage4-0.5.9.md",
+        "to": "docs/stage4-0.5.9.md"
+      },
+      {
+        "from": "docs/stage4-0.5.8.md",
+        "to": "docs/stage4-0.5.8.md"
+      },
+      {
+        "from": "docs/stage4-0.5.7.md",
+        "to": "docs/stage4-0.5.7.md"
+      },
+      {
+        "from": "docs/stage4-0.5.6.md",
+        "to": "docs/stage4-0.5.6.md"
+      },
+      {
+        "from": "docs/stage4-0.5.5.md",
+        "to": "docs/stage4-0.5.5.md"
+      },
+      {
+        "from": "docs/stage3-0.5.4.md",
+        "to": "docs/stage3-0.5.4.md"
+      },
+      {
+        "from": "docs/stage2-0.5.3.md",
+        "to": "docs/stage2-0.5.3.md"
+      },
+      {
+        "from": "docs/stage2-0.5.2.md",
+        "to": "docs/stage2-0.5.2.md"
+      },
+      {
+        "from": "docs/stage2-0.5.1.md",
+        "to": "docs/stage2-0.5.1.md"
+      },
+      {
+        "from": "FORENSIC_READINESS_CHECKLIST.md",
+        "to": "FORENSIC_READINESS_CHECKLIST.md"
+      },
+      {
+        "from": "docs/stage2-0.5.0.md",
+        "to": "docs/stage2-0.5.0.md"
+      },
+      {
+        "from": "docs/stage2-readiness.md",
+        "to": "docs/stage2-readiness.md"
+      },
+      {
+        "from": "docs/stage2-preservation-protocol.md",
+        "to": "docs/stage2-preservation-protocol.md"
+      },
+      {
+        "from": "docs/image-acquisition.md",
+        "to": "docs/image-acquisition.md"
+      },
+      {
+        "from": "docs/stage1-0.3.9.md",
+        "to": "docs/stage1-0.3.9.md"
+      },
+      {
+        "from": "docs/dual-mode-0.3.md",
+        "to": "docs/dual-mode-0.3.md"
+      },
+      {
+        "from": "README.md",
+        "to": "README.md"
+      },
+      {
+        "from": "SUPPORT.md",
+        "to": "SUPPORT.md"
+      },
+      {
+        "from": "THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "BUILD_CHECKLIST.md",
+        "to": "BUILD_CHECKLIST.md"
+      },
+      {
+        "from": "DEVELOPMENT_LOG.md",
+        "to": "DEVELOPMENT_LOG.md"
+      },
+      {
+        "from": "VERIFICATION.md",
+        "to": "VERIFICATION.md"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3"
+  }
+}
